@@ -1,8 +1,12 @@
 
 
+import 'dart:convert';
+
 import 'package:api_practice_05/new_product_add_screen.dart';
+import 'package:api_practice_05/products.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 class HomeScreen extends StatefulWidget{
   @override
@@ -13,6 +17,45 @@ class HomeScreen extends StatefulWidget{
 }
 
 class HomeScreenUI extends State<HomeScreen>{
+
+  List<Product> products = [];
+
+  /// API call initState
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print("Call API");
+    getProduct();
+  }
+
+  getProduct() async{
+    Response response = await get(Uri.parse('https://crud.teamrabbil.com/api/v1/ReadProduct'));
+    print(response.statusCode);
+    print(response.body);
+    final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
+    print("Decoded Response Length : ${decodedResponse['data'].length}");
+    if ( response.statusCode == 200 && decodedResponse['status'] == 'success'){
+      for ( var e in decodedResponse['data']){
+        products.add(Product(
+          e['_id'],
+          e['ProductName'],
+          e['ProductCode'],
+          e['Img'],
+          e['UnitPrice'],
+          e['Qty'],
+          e['TotalPrice'],
+          e['CreatedDate'],
+            //it, productName, productCode, image, unitPrice, quentity, totalPrice, createdDate
+        ));
+        setState(() {});
+      }
+      print("Data of List : ${products[0].productName}");
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,16 +104,16 @@ class HomeScreenUI extends State<HomeScreen>{
                 );
               },
               leading: Icon(Icons.image),
-              title: Text("Product Name"),
+              title: Text("Product Name : ${products[index].productName}"),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Product Code : "),
-                  Text("Total Price : "),
-                  Text("Available Unit : "),
+                  Text("Product Code : ${products[index].productCode}"),
+                  Text("Total Price : ${products[index].totalPrice}"),
+                  Text("Available Unit : ${products[index].quentity}"),
                 ],
               ),
-              trailing: Text("Unit Price : "),
+              trailing: Text("Unit Price : ${products[index].unitPrice}"),
             );
           }, separatorBuilder: (BuildContext context, int index) {
           return Divider(color: Colors.pink, height: 1,);
